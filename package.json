@@ -1,0 +1,56 @@
+{
+  "name": "sprntrl",
+  "version": "0.1.0",
+  "description": "Sprntrl Node SDK — stealth browser-as-a-service client.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "browser",
+    "automation",
+    "playwright",
+    "puppeteer",
+    "cdp",
+    "stealth",
+    "scraping"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sprntrl/sprntrl-node.git"
+  },
+  "homepage": "https://sprntrl.ai",
+  "license": "MIT",
+  "peerDependencies": {
+    "playwright": "^1.40.0",
+    "puppeteer": "^22.0.0",
+    "puppeteer-core": "^22.0.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": { "optional": true },
+    "puppeteer": { "optional": true },
+    "puppeteer-core": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}
