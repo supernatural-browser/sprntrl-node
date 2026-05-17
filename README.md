@@ -1,6 +1,6 @@
 # Sprntrl Node SDK
 
-Official Node.js / TypeScript client for the [Sprntrl](https://sprntrl.ai) stealth browser-as-a-service API.
+Official Node.js / TypeScript client for the [Sprntrl](https://supernatural.sh) stealth browser-as-a-service API.
 
 ## Installation
 
@@ -68,7 +68,7 @@ Or get the raw CDP WebSocket URL for any CDP client (chrome-remote-interface, ra
 
 ```ts
 const url = client.sessions.cdpUrl(session.id);
-// wss://api.sprntrl.ai/api/v1/sessions/<id>/cdp
+// wss://api.supernatural.sh/api/v1/sessions/<id>/cdp
 ```
 
 ## Configuration
@@ -76,14 +76,14 @@ const url = client.sessions.cdpUrl(session.id);
 | Env var             | Default                    |
 |---------------------|----------------------------|
 | `SPRNTRL_API_KEY`   | —                          |
-| `SPRNTRL_BASE_URL`  | `https://api.sprntrl.ai`   |
+| `SPRNTRL_BASE_URL`  | `https://api.supernatural.sh`   |
 
 Or per client:
 
 ```ts
 const client = new Sprntrl({
   apiKey: "sk_...",
-  baseURL: "https://api.sprntrl.ai",
+  baseURL: "https://api.supernatural.sh",
   timeout: 30_000,
   maxRetries: 2,
 });

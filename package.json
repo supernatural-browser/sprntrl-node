@@ -37,7 +37,7 @@
     "type": "git",
     "url": "https://github.com/sprntrl/sprntrl-node.git"
   },
-  "homepage": "https://sprntrl.ai",
+  "homepage": "https://supernatural.sh",
   "license": "MIT",
   "peerDependencies": {
     "playwright": "^1.40.0",

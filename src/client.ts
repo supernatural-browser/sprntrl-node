@@ -17,7 +17,7 @@ export interface ClientOptions {
   fetch?: typeof fetch;
 }
 
-const DEFAULT_BASE_URL = "https://api.sprntrl.ai";
+const DEFAULT_BASE_URL = "https://api.supernatural.sh";
 const DEFAULT_TIMEOUT = 60_000;
 const DEFAULT_MAX_RETRIES = 2;
 
