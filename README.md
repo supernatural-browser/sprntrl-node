@@ -1,6 +1,6 @@
-# Sprntrl Node SDK
+# Supernatural Node SDK
 
-Official Node.js / TypeScript client for the [Sprntrl](https://supernatural.sh) stealth browser-as-a-service API.
+Official Node.js / TypeScript client for the [Supernatural](https://supernatural.sh) stealth browser-as-a-service API.
 
 ## Installation
 
