@@ -13,6 +13,7 @@ export interface SessionCreateParams {
   os: OS;
   location: string;
   persistent?: boolean;
+  captcha_solver?: boolean;
   session_name?: string;
   proxy?: string | ProxyConfig;
 }
@@ -61,8 +62,9 @@ export class Sessions extends APIResource {
   }
 
   create(params: SessionCreateParams): Promise<Session> {
-    const { os, location, persistent = false, session_name, proxy } = params;
+    const { os, location, persistent = false, captcha_solver, session_name, proxy } = params;
     const body: Record<string, unknown> = { os, location, persistent };
+    if (captcha_solver) body.captcha_solver = true;
     if (session_name !== undefined) body.session_name = session_name;
     Object.assign(body, normalizeProxy(proxy));
     return this._client.request<Session>({
@@ -101,6 +103,16 @@ export class Sessions extends APIResource {
       method: "GET",
       path: "/api/v1/sessions/resumable",
       query: { limit: params.limit ?? 10 },
+    });
+    return r.sessions ?? [];
+  }
+
+  /** Persistent sessions (those created with `persistent: true`), whether
+   * currently running or stopped-but-resumable. */
+  async listPersistent(): Promise<Session[]> {
+    const r = await this._client.request<{ sessions: Session[] }>({
+      method: "GET",
+      path: "/api/v1/sessions/persistent",
     });
     return r.sessions ?? [];
   }

@@ -19,6 +19,7 @@ export type {
   ProxyConfig,
   SessionStatus,
   Session,
+  ProxySummary,
   PaginatedSessions,
   Profile,
   Template,
@@ -28,9 +29,11 @@ export type {
   Usage,
   UsageMonth,
   User,
+  AccountStatus,
   FileInfo,
 } from "./types.js";
 export type { SessionCreateParams, ConnectOptions, BrowserHandle } from "./resources/sessions.js";
+export type { UserSettings, ChangePasswordResult } from "./resources/user.js";
 export type { ProfileCreateParams } from "./resources/profiles.js";
 export type { FileContent } from "./resources/session-files.js";
 
