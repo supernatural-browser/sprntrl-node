@@ -1,7 +1,7 @@
 {
   "name": "sprntrl",
   "version": "0.1.0",
-  "description": "Sprntrl Node SDK — stealth browser-as-a-service client.",
+  "description": "Supernatural Node SDK — stealth browser-as-a-service client.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,7 +22,8 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
     "browser",
@@ -35,9 +36,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sprntrl/sprntrl-node.git"
+    "url": "git+https://github.com/supernatural-browser/sprntrl-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/supernatural-browser/sprntrl-node/issues"
   },
   "homepage": "https://supernatural.sh",
+  "author": "Supernatural",
   "license": "MIT",
   "peerDependencies": {
     "playwright": "^1.40.0",
