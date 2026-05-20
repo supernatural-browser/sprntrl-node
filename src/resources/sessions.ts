@@ -14,6 +14,13 @@ export interface SessionCreateParams {
   location: string;
   persistent?: boolean;
   captcha_solver?: boolean;
+  /**
+   * Run automation in a V8 isolated world hidden from the page (default: true).
+   * Leave unset to use the platform default. Set to `false` only when you must
+   * read page-defined JavaScript globals or call functions the page exposes on
+   * `window.*` — main-world execution is visible to anti-bot detection.
+   */
+  isolated_world?: boolean;
   session_name?: string;
   proxy?: string | ProxyConfig;
 }
@@ -62,9 +69,18 @@ export class Sessions extends APIResource {
   }
 
   create(params: SessionCreateParams): Promise<Session> {
-    const { os, location, persistent = false, captcha_solver, session_name, proxy } = params;
+    const {
+      os,
+      location,
+      persistent = false,
+      captcha_solver,
+      isolated_world,
+      session_name,
+      proxy,
+    } = params;
     const body: Record<string, unknown> = { os, location, persistent };
     if (captcha_solver) body.captcha_solver = true;
+    if (isolated_world !== undefined) body.isolated_world = isolated_world;
     if (session_name !== undefined) body.session_name = session_name;
     Object.assign(body, normalizeProxy(proxy));
     return this._client.request<Session>({
