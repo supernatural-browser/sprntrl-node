@@ -4,7 +4,7 @@ import type { Browser } from "playwright";
 async function main() {
   const client = new Sprntrl();
 
-  const session = await client.sessions.create({ os: "macos", location: "us-east" });
+  const session = await client.sessions.create({ os: "macos", location: "America/New_York" });
   try {
     const browser = (await client.sessions.connect(session.id, {
       autoWhitelist: true,
