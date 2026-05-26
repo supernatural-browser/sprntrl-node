@@ -19,7 +19,7 @@ import type { Browser } from "playwright";
 
 const client = new Sprntrl(); // reads SPRNTRL_API_KEY from env
 
-const session = await client.sessions.create({ os: "macos", location: "us-east" });
+const session = await client.sessions.create({ os: "macos", location: "America/New_York" });
 
 // browserSession waits for the session, connects Playwright, and hands you
 // a disposable handle. autoWhitelist registers your IP (CDP is IP-gated).
@@ -106,7 +106,7 @@ const client = new Sprntrl({
 import { Sprntrl, APIError, RateLimitError, AuthenticationError } from "sprntrl";
 
 try {
-  await client.sessions.create({ os: "macos", location: "us-east" });
+  await client.sessions.create({ os: "macos", location: "America/New_York" });
 } catch (err) {
   if (err instanceof RateLimitError) console.log("rate limited", err.status);
   else if (err instanceof AuthenticationError) console.log("bad API key");

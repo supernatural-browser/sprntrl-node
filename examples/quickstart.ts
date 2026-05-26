@@ -3,7 +3,7 @@ import { Sprntrl } from "sprntrl";
 async function main() {
   const client = new Sprntrl();
 
-  const session = await client.sessions.create({ os: "macos", location: "us-east" });
+  const session = await client.sessions.create({ os: "macos", location: "America/New_York" });
   console.log(`created ${session.id} (status=${session.status})`);
 
   const ready = await client.sessions.waitUntilReady(session.id);
