@@ -1,7 +1,9 @@
 import { APIResource } from "../core/resource.js";
 import { SprntrlError } from "../core/error.js";
 import { SessionFiles } from "./session-files.js";
+import { SessionExtensions } from "./session-extensions.js";
 import type {
+  ExtensionInlineSpec,
   OS,
   PaginatedSessions,
   ProxyConfig,
@@ -23,6 +25,13 @@ export interface SessionCreateParams {
   isolated_world?: boolean;
   session_name?: string;
   proxy?: string | ProxyConfig;
+  /**
+   * Chrome extensions to load at launch. Only respected for ephemeral
+   * sessions (persistent profiles manage extensions via
+   * `client.sessions.extensions.*`). Each entry uses exactly one source:
+   * `{ uploadB64, filename? }`, `{ webstoreUrl }`, or `{ crxUrl }`.
+   */
+  extensions?: ExtensionInlineSpec[];
 }
 
 export interface ConnectOptions {
@@ -62,10 +71,12 @@ function normalizeProxy(
 
 export class Sessions extends APIResource {
   files: SessionFiles;
+  extensions: SessionExtensions;
 
   constructor(client: Sprntrl) {
     super(client);
     this.files = new SessionFiles(client);
+    this.extensions = new SessionExtensions(client);
   }
 
   create(params: SessionCreateParams): Promise<Session> {
@@ -77,12 +88,21 @@ export class Sessions extends APIResource {
       isolated_world,
       session_name,
       proxy,
+      extensions,
     } = params;
     const body: Record<string, unknown> = { os, location, persistent };
     if (captcha_solver) body.captcha_solver = true;
     if (isolated_world !== undefined) body.isolated_world = isolated_world;
     if (session_name !== undefined) body.session_name = session_name;
     Object.assign(body, normalizeProxy(proxy));
+    if (extensions && extensions.length > 0) {
+      body.extensions = extensions.map((e) => ({
+        upload_b64: e.uploadB64,
+        filename: e.filename,
+        webstore_url: e.webstoreUrl,
+        crx_url: e.crxUrl,
+      }));
+    }
     return this._client.request<Session>({
       method: "POST",
       path: "/api/v1/sessions",
@@ -155,10 +175,21 @@ export class Sessions extends APIResource {
     });
   }
 
-  resume(sessionId: string): Promise<Session> {
+  /**
+   * Resume a stopped persistent session. By default the proxy used at the
+   * previous run is reused; pass `proxy` to switch to a different BYO proxy
+   * for this and future resumes. The session retains its OS, location, and
+   * fingerprint pin — those are immutable after create.
+   */
+  resume(
+    sessionId: string,
+    options: { proxy?: string | ProxyConfig } = {},
+  ): Promise<Session> {
+    const body = normalizeProxy(options.proxy);
     return this._client.request<Session>({
       method: "POST",
       path: `/api/v1/sessions/${encodeURIComponent(sessionId)}/resume`,
+      body: Object.keys(body).length > 0 ? body : undefined,
     });
   }
 

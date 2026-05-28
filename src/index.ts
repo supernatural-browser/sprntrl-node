@@ -31,6 +31,9 @@ export type {
   User,
   AccountStatus,
   FileInfo,
+  SessionExtension,
+  ExtensionInlineSpec,
+  ExtensionAddParams,
 } from "./types.js";
 export type { SessionCreateParams, ConnectOptions, BrowserHandle } from "./resources/sessions.js";
 export type { UserSettings, ChangePasswordResult } from "./resources/user.js";
