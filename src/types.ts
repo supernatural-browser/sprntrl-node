@@ -169,3 +169,57 @@ export interface FileInfo {
   size: number;
   modified?: string;
 }
+
+/**
+ * One Chrome extension attached to a persistent session's profile.
+ * Extensions live in storage keyed by (user_id, session_name, extension_id);
+ * the dashboard, API, and SDK all show the same view.
+ */
+export interface SessionExtension {
+  /** Internal UUID — pass to update()/remove(). */
+  id: string;
+  user_id: string;
+  session_name: string;
+  /** 32-char Chromium-style extension ID derived from the manifest key. */
+  extension_id: string;
+  name: string;
+  version: string;
+  manifest_version: number;
+  permissions: string[];
+  host_permissions: string[];
+  source: "upload" | "webstore" | "crx_url";
+  source_ref?: string | null;
+  size_bytes: number;
+  sha256: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Inline extension spec for ephemeral sessions — set exactly one of
+ * uploadB64, webstoreUrl, or crxUrl. Persistent sessions ignore the
+ * `extensions` field on create; manage them through
+ * `client.sessions.extensions.*` instead.
+ */
+export interface ExtensionInlineSpec {
+  /** Base64-encoded ZIP or CRX bytes (up to 50 MiB after decode). */
+  uploadB64?: string;
+  filename?: string;
+  /** Chrome Web Store detail-page URL, or bare 32-char extension ID. */
+  webstoreUrl?: string;
+  /** Direct URL to a .crx or .zip blob. HTTPS, public IPs only. */
+  crxUrl?: string;
+}
+
+/**
+ * One of upload (Buffer/Blob), webstoreUrl, or crxUrl is required.
+ * Persistent-session-only: use `extensions` on `sessions.create` for
+ * ephemeral sessions instead.
+ */
+export interface ExtensionAddParams {
+  upload?: Uint8Array | Blob;
+  filename?: string;
+  webstoreUrl?: string;
+  crxUrl?: string;
+}
