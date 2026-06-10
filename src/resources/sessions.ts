@@ -23,6 +23,18 @@ export interface SessionCreateParams {
    * `window.*` — main-world execution is visible to anti-bot detection.
    */
   isolated_world?: boolean;
+  /**
+   * Launch Chrome in headless mode (`--headless=new`). Default: `true`.
+   * Pass `false` if you also want a live viewer of the session
+   * (e.g. for human-assisted debugging). The browser is reachable over
+   * CDP either way.
+   */
+  headless?: boolean;
+  /**
+   * Disable image loading for the session (`--blink-settings=imagesEnabled=false`).
+   * Default: `false`. Speeds up loads and cuts bandwidth on image-heavy sites.
+   */
+  block_images?: boolean;
   session_name?: string;
   proxy?: string | ProxyConfig;
   /**
@@ -86,6 +98,8 @@ export class Sessions extends APIResource {
       persistent = false,
       captcha_solver,
       isolated_world,
+      headless,
+      block_images,
       session_name,
       proxy,
       extensions,
@@ -93,6 +107,8 @@ export class Sessions extends APIResource {
     const body: Record<string, unknown> = { os, location, persistent };
     if (captcha_solver) body.captcha_solver = true;
     if (isolated_world !== undefined) body.isolated_world = isolated_world;
+    if (headless !== undefined) body.headless = headless;
+    if (block_images) body.block_images = true;
     if (session_name !== undefined) body.session_name = session_name;
     Object.assign(body, normalizeProxy(proxy));
     if (extensions && extensions.length > 0) {
