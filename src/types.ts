@@ -63,6 +63,28 @@ export interface PaginatedSessions {
   per_page: number;
 }
 
+/**
+ * One entry in the location picker. `location` is an IANA timezone (it
+ * drives the browser's timezone); `label` is the human-readable region the
+ * pool serves there (e.g. "Kentucky, US") — null on unlabeled rows. Pass
+ * both back to `sessions.create` to pin the pool match to that slice.
+ */
+export interface LocationOption {
+  location: string;
+  label: string | null;
+}
+
+/**
+ * Response of `sessions.listLocations()`. Pool-proxy sessions must pick
+ * from `options`; `accepts_iana: true` means BYO-proxy sessions may instead
+ * pass any IANA timezone (see `iana_examples`) as `location`.
+ */
+export interface LocationOptions {
+  options: LocationOption[];
+  accepts_iana: boolean;
+  iana_examples?: string[];
+}
+
 export interface Profile {
   id: string;
   user_id: string;

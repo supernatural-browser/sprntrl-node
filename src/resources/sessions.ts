@@ -4,6 +4,7 @@ import { SessionFiles } from "./session-files.js";
 import { SessionExtensions } from "./session-extensions.js";
 import type {
   ExtensionInlineSpec,
+  LocationOptions,
   OS,
   PaginatedSessions,
   ProxyConfig,
@@ -14,6 +15,12 @@ import type { Sprntrl } from "../client.js";
 export interface SessionCreateParams {
   os: OS;
   location: string;
+  /**
+   * Pin the proxy-pool match to a specific labeled row at `location` — one
+   * of the labels surfaced by `listLocations()` (e.g. "Kentucky, US").
+   * Ignored for BYO-proxy sessions.
+   */
+  label?: string;
   persistent?: boolean;
   captcha_solver?: boolean;
   /**
@@ -44,6 +51,40 @@ export interface SessionCreateParams {
    * `{ uploadB64, filename? }`, `{ webstoreUrl }`, or `{ crxUrl }`.
    */
   extensions?: ExtensionInlineSpec[];
+}
+
+export interface SessionResumeParams {
+  /**
+   * Override the profile's OS. Changing it rebuilds the pinned fingerprint —
+   * the profile's identity intentionally drifts from this resume on.
+   */
+  os?: OS;
+  /**
+   * Override the profile's location. Changing it rebuilds the pinned
+   * fingerprint (same one-time identity drift as `os`); on a pool session it
+   * also re-assigns a pool proxy for the new region.
+   */
+  location?: string;
+  /**
+   * Re-pin the pool match to a specific labeled row at the (possibly new)
+   * location — one of the labels from `listLocations()`. Pass an empty
+   * string to clear the stored label (match any pool row at the location);
+   * omit to keep it.
+   */
+  label?: string;
+  captcha_solver?: boolean;
+  /** See `SessionCreateParams.isolated_world`. Omit to keep the stored value. */
+  isolated_world?: boolean;
+  /** See `SessionCreateParams.headless`. Omit to keep the stored value. */
+  headless?: boolean;
+  /** See `SessionCreateParams.block_images`. Omit to keep the stored value. */
+  block_images?: boolean;
+  /**
+   * Switch to a different BYO proxy for this and future resumes. Supplying a
+   * proxy also switches a pool session to BYO; switching a BYO session back
+   * to a pool proxy is not supported — delete and recreate the profile.
+   */
+  proxy?: string | ProxyConfig;
 }
 
 export interface ConnectOptions {
@@ -95,6 +136,7 @@ export class Sessions extends APIResource {
     const {
       os,
       location,
+      label,
       persistent = false,
       captcha_solver,
       isolated_world,
@@ -105,6 +147,7 @@ export class Sessions extends APIResource {
       extensions,
     } = params;
     const body: Record<string, unknown> = { os, location, persistent };
+    if (label !== undefined) body.label = label;
     if (captcha_solver) body.captcha_solver = true;
     if (isolated_world !== undefined) body.isolated_world = isolated_world;
     if (headless !== undefined) body.headless = headless;
@@ -169,12 +212,17 @@ export class Sessions extends APIResource {
     return r.sessions ?? [];
   }
 
-  async listLocations(): Promise<string[]> {
-    const r = await this._client.request<{ locations: string[] }>({
+  /**
+   * Location options for `create`/`resume`. Pool-proxy sessions must pick a
+   * `location` (and optionally `label`) from `options`; `accepts_iana: true`
+   * means BYO-proxy sessions may instead pass any IANA timezone
+   * (see `iana_examples`) as `location`.
+   */
+  listLocations(): Promise<LocationOptions> {
+    return this._client.request<LocationOptions>({
       method: "GET",
       path: "/api/v1/sessions/locations",
     });
-    return r.locations ?? [];
   }
 
   get(sessionId: string): Promise<Session> {
@@ -192,16 +240,25 @@ export class Sessions extends APIResource {
   }
 
   /**
-   * Resume a stopped persistent session. By default the proxy used at the
-   * previous run is reused; pass `proxy` to switch to a different BYO proxy
-   * for this and future resumes. The session retains its OS, location, and
-   * fingerprint pin — those are immutable after create.
+   * Resume a stopped persistent session. Every option is an override —
+   * omitted fields keep the values stored on the session. Changing `os` or
+   * `location` rebuilds the pinned fingerprint (an intentional one-time
+   * identity drift); changing `location` on a pool session also re-assigns
+   * the pool proxy for the new region. Supplying `proxy` switches a pool
+   * session to BYO — BYO back to pool is not supported (delete + recreate).
    */
-  resume(
-    sessionId: string,
-    options: { proxy?: string | ProxyConfig } = {},
-  ): Promise<Session> {
-    const body = normalizeProxy(options.proxy);
+  resume(sessionId: string, options: SessionResumeParams = {}): Promise<Session> {
+    const { os, location, label, captcha_solver, isolated_world, headless, block_images, proxy } =
+      options;
+    const body: Record<string, unknown> = {};
+    if (os !== undefined) body.os = os;
+    if (location !== undefined) body.location = location;
+    if (label !== undefined) body.label = label;
+    if (captcha_solver !== undefined) body.captcha_solver = captcha_solver;
+    if (isolated_world !== undefined) body.isolated_world = isolated_world;
+    if (headless !== undefined) body.headless = headless;
+    if (block_images !== undefined) body.block_images = block_images;
+    Object.assign(body, normalizeProxy(proxy));
     return this._client.request<Session>({
       method: "POST",
       path: `/api/v1/sessions/${encodeURIComponent(sessionId)}/resume`,
