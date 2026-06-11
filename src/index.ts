@@ -21,6 +21,8 @@ export type {
   Session,
   ProxySummary,
   PaginatedSessions,
+  LocationOption,
+  LocationOptions,
   Profile,
   Template,
   IPWhitelistEntry,
@@ -35,7 +37,12 @@ export type {
   ExtensionInlineSpec,
   ExtensionAddParams,
 } from "./types.js";
-export type { SessionCreateParams, ConnectOptions, BrowserHandle } from "./resources/sessions.js";
+export type {
+  SessionCreateParams,
+  SessionResumeParams,
+  ConnectOptions,
+  BrowserHandle,
+} from "./resources/sessions.js";
 export type { UserSettings, ChangePasswordResult } from "./resources/user.js";
 export type { ProfileCreateParams } from "./resources/profiles.js";
 export type { FileContent } from "./resources/session-files.js";
