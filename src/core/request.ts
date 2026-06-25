@@ -42,14 +42,56 @@ function buildURL(baseURL: string, path: string, query?: RequestOptions["query"]
   return url.toString();
 }
 
-function shouldRetry(status: number | null): boolean {
+// Codes the server sends on a 429 that represents a non-transient
+// quota/capacity limit (at your concurrent-session cap, out of plan usage,
+// etc.). Waiting does NOT clear these — only changing state (stopping a
+// session, upgrading) does — so retrying just amplifies load and can never
+// succeed. A 429 without one of these codes (or with "rate_limited") is a real
+// throttle and stays retryable.
+const NON_RETRYABLE_429_CODES = new Set([
+  "concurrent_session_limit",
+  "usage_limit_exceeded",
+  "persistent_profile_limit",
+  "bandwidth_limit_reached",
+  "byo_not_supported",
+]);
+
+function shouldRetry(status: number | null, code: string | null): boolean {
   if (status === null) return true;
-  return status === 408 || status === 409 || status === 429 || status >= 500;
+  if (status === 429) return code === null || !NON_RETRYABLE_429_CODES.has(code);
+  // 408 Request Timeout and 5xx are transient. 409 Conflict is a state
+  // conflict (e.g. profile already exists) — retrying won't help.
+  return status === 408 || status >= 500;
 }
 
 function backoff(attempt: number): number {
   const base = 500 * 2 ** attempt;
   return base + Math.floor(Math.random() * 250);
+}
+
+/** The machine-readable `code` from a JSON error body, if any. */
+async function errorCode(response: Response): Promise<string | null> {
+  try {
+    const body = await response.clone().json();
+    if (body && typeof body === "object") {
+      const c = (body as Record<string, unknown>).code;
+      if (typeof c === "string") return c;
+    }
+  } catch {
+    // not JSON
+  }
+  return null;
+}
+
+/** Honor a server Retry-After (seconds) when present — capped so a large value
+ * can't hang the caller — else exponential backoff. Returns milliseconds. */
+function retryDelay(attempt: number, response: Response): number {
+  const ra = response.headers.get("Retry-After");
+  if (ra) {
+    const secs = Number(ra);
+    if (!Number.isNaN(secs)) return Math.max(0, Math.min(secs, 30)) * 1000;
+  }
+  return backoff(attempt);
 }
 
 async function parseError(response: Response): Promise<{ message: string; body: unknown }> {
@@ -114,8 +156,9 @@ export async function request<T = unknown>(
         return (await response.arrayBuffer()) as unknown as T;
       }
 
-      if (shouldRetry(response.status) && attempt < maxRetries) {
-        await sleep(backoff(attempt));
+      const code = response.status === 429 ? await errorCode(response) : null;
+      if (shouldRetry(response.status, code) && attempt < maxRetries) {
+        await sleep(retryDelay(attempt, response));
         continue;
       }
       const { message, body } = await parseError(response);
