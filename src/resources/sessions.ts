@@ -31,10 +31,10 @@ export interface SessionCreateParams {
    */
   isolated_world?: boolean;
   /**
-   * Launch Chrome in headless mode (`--headless=new`). Default: `true`.
-   * Pass `false` if you also want a live viewer of the session
-   * (e.g. for human-assisted debugging). The browser is reachable over
-   * CDP either way.
+   * @deprecated Ignored. Headless mode is disabled platform-wide because
+   * headless Chrome is trivially detectable and would break the session's
+   * stealth — every session runs headed regardless of this value. The field
+   * is still accepted for backward compatibility.
    */
   headless?: boolean;
   /**
@@ -75,7 +75,7 @@ export interface SessionResumeParams {
   captcha_solver?: boolean;
   /** See `SessionCreateParams.isolated_world`. Omit to keep the stored value. */
   isolated_world?: boolean;
-  /** See `SessionCreateParams.headless`. Omit to keep the stored value. */
+  /** @deprecated Ignored — headless is disabled platform-wide (see `SessionCreateParams.headless`). */
   headless?: boolean;
   /** See `SessionCreateParams.block_images`. Omit to keep the stored value. */
   block_images?: boolean;

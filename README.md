@@ -35,12 +35,12 @@ try {
 }
 ```
 
-### With `await using` (Node 24+ / TS 5.2+)
+### With `await using` (Node 20.11+ / TS 5.2+)
 
 ```ts
 {
   await using handle = await client.sessions.browserSession(session.id, { autoWhitelist: true });
-  const page = await handle.browser.contexts()[0].newPage();
+  const page = await (handle.browser as Browser).contexts()[0].newPage();
   await page.goto("https://example.com");
 } // browser auto-closes here
 ```
@@ -85,8 +85,8 @@ const session = await client.sessions.create({
   captcha_solver: true,         // auto-solves hCaptcha, Turnstile, reCAPTCHA and more (charged per solve)
   isolated_world: true,         // default true — keep on for stealth; set false only to access
                                 // page-defined JS globals (main-world execution is detectable)
-  headless: false,              // default TRUE for API/SDK callers; set false to get the live
-                                // browser view in the dashboard
+  headless: false,              // deprecated and ignored — headless is disabled platform-wide
+                                // (headless Chrome is trivially detectable); sessions always run headed
   block_images: true,           // default false; cuts bandwidth and speeds up loads
   proxy: "http://user:pass@host:8080", // string URL or { protocol, host, port, username, password };
                                        // HTTP / HTTPS / SOCKS5
@@ -115,7 +115,7 @@ const session = await client.sessions.create({
 await client.sessions.stop(session.id); // profile is kept
 
 // Later — resume, optionally overriding any create-time option:
-const resumed = await client.sessions.resume(session.id, { headless: false });
+const resumed = await client.sessions.resume(session.id, { block_images: true });
 
 // Done with the profile entirely:
 await client.sessions.deletePersistent(session.id);
@@ -131,7 +131,7 @@ const data = await client.sessions.files.download(session.id, "report.csv");
 await client.sessions.files.upload(session.id, "input.json", JSON.stringify(payload));
 ```
 
-Uploads are capped at 100 MB per request.
+Uploads are capped at 100 MiB per request.
 
 ## Extensions
 
@@ -148,13 +148,14 @@ await client.sessions.create({
 Persistent profiles manage extensions through the dedicated resource instead:
 
 ```ts
+// add() takes exactly one of `upload`, `webstoreUrl`, or `crxUrl`:
 const ext = await client.sessions.extensions.add(session.id, { crxUrl: "https://example.com/my.crx" });
 await client.sessions.extensions.list(session.id);
 await client.sessions.extensions.setEnabled(session.id, ext.id, false);
 await client.sessions.extensions.remove(session.id, ext.id);
 ```
 
-Manifest V3 only (Chromium 148 dropped MV2). Max 16 extensions per profile, uploads capped at 50 MiB. Changes take effect at the next session start — stop and resume to apply.
+Manifest V3 only (Chromium 148 dropped MV2). Max 16 extensions per profile. Uploads via `extensions.add` are capped at 50 MiB; inline `uploadB64` at create is bound by the 8 MiB request-body limit on `POST /api/v1/sessions`, so use the persistent sub-resource for anything larger. Changes take effect at the next session start — stop and resume to apply.
 
 ## Configuration
 
@@ -201,13 +202,15 @@ try {
 }
 ```
 
-Transient errors (5xx, 429, 408, connection errors) are retried automatically up to `maxRetries` with exponential backoff.
+5xx, 408 and connection errors are retried automatically up to `maxRetries`. A 429 is retried only when it's a real throttle — quota 429s (`concurrent_session_limit`, `usage_limit_exceeded`, `persistent_profile_limit`, `bandwidth_limit_reached`, `byo_not_supported`) throw immediately, since waiting can't clear them. A server `Retry-After` is honoured when present (capped at 30s), otherwise backoff is exponential. 409 is never retried.
 
 ## Gotchas
 
 - **CDP access is IP-whitelist gated.** The WebSocket at `/api/v1/sessions/:id/cdp` does not accept bearer auth — instead your public IP (as Cloudflare sees it) must be in your account's whitelist. Use `client.ipWhitelist.add("current")` or pass `{ autoWhitelist: true }` to `sessions.connect`.
 - **Sessions start async.** `sessions.create` returns immediately with `status: "creating"`. Call `sessions.waitUntilReady(id)` before connecting, or just use `sessions.connect()` which waits for you.
 - **API key is shown only once.** `apiKeys.create()` returns the full `key` field exactly once — store it immediately.
+- **Dropping to raw HTTP? The scheme is `ApiKey`, not `Bearer`.** Send `Authorization: ApiKey sk_...`. `Bearer sk_...` is routed to the JWT branch and 401s. There is no `X-API-Key` header.
+- **A lapsed account returns 402, not 401.** Session routes sit behind the billing gate, so a valid key on a non-active account gets `402 Payment Required`.
 
 ## License
 
