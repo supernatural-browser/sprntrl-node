@@ -42,6 +42,20 @@ export interface SessionCreateParams {
    * Default: `false`. Speeds up loads and cuts bandwidth on image-heavy sites.
    */
   block_images?: boolean;
+  /**
+   * Seed the profile with a published site cache pack (e.g. `"kayak"`) before
+   * Chrome launches, so the first load of that site fetches HTML and data
+   * calls only. Unknown names are rejected.
+   */
+  cache_pack?: string;
+  /**
+   * Turn on the browser's built-in ad/tracker blocking (EasyList + EasyPrivacy;
+   * anti-bot and captcha vendors are never blocked) for the whole session.
+   * Default `false`.
+   */
+  block_trackers?: boolean;
+  /** Domains never blocked for this session (e.g. `["googletagmanager.com"]`). */
+  block_trackers_exclude?: string[];
   session_name?: string;
   proxy?: string | ProxyConfig;
   /**
@@ -142,6 +156,9 @@ export class Sessions extends APIResource {
       isolated_world,
       headless,
       block_images,
+      cache_pack,
+      block_trackers,
+      block_trackers_exclude,
       session_name,
       proxy,
       extensions,
@@ -152,6 +169,9 @@ export class Sessions extends APIResource {
     if (isolated_world !== undefined) body.isolated_world = isolated_world;
     if (headless !== undefined) body.headless = headless;
     if (block_images) body.block_images = true;
+    if (cache_pack) body.cache_pack = cache_pack;
+    if (block_trackers) body.block_trackers = true;
+    if (block_trackers_exclude && block_trackers_exclude.length > 0) body.block_trackers_exclude = block_trackers_exclude;
     if (session_name !== undefined) body.session_name = session_name;
     Object.assign(body, normalizeProxy(proxy));
     if (extensions && extensions.length > 0) {
