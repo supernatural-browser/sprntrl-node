@@ -54,6 +54,22 @@ const handle = await client.sessions.browserSession(session.id, {
 });
 ```
 
+The SDK connects Puppeteer with `defaultViewport: null`, so pages keep the
+persona's real window size. If you call `puppeteer.connect()` yourself, pass
+`defaultViewport: null` too.
+
+### Viewport: don't override it
+
+Each session's window size comes from its persona. Overriding the viewport makes
+`innerWidth` disagree with `document.documentElement.clientWidth` and
+`matchMedia`, which sites can detect.
+
+- Playwright: use `browser.contexts()[0]`. If you need a fresh context, use
+  `browser.newContext({ viewport: null })`. A plain `newContext()` applies a
+  1280×720 viewport.
+- Avoid `page.setViewport()` (Puppeteer), `page.setViewportSize()` (Playwright)
+  and `newContext({ viewport: {...} })`. They are all detectable on our browser.
+
 ### Lower-level `connect()` and `cdpUrl()`
 
 If you want to manage the browser lifecycle yourself:

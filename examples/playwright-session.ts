@@ -10,7 +10,8 @@ async function main() {
       autoWhitelist: true,
     })) as Browser;
 
-    const context = browser.contexts()[0] ?? (await browser.newContext());
+    // viewport: null keeps the persona's window size; a plain newContext() emulates 1280x720.
+    const context = browser.contexts()[0] ?? (await browser.newContext({ viewport: null }));
     const page = context.pages()[0] ?? (await context.newPage());
 
     await page.goto("https://bot.sannysoft.com", { waitUntil: "domcontentloaded" });

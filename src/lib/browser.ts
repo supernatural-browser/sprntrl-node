@@ -53,7 +53,9 @@ export async function connect(
   }
 
   if (framework === "puppeteer") {
-    let mod: { connect: (args: { browserWSEndpoint: string }) => Promise<unknown> };
+    let mod: {
+      connect: (args: { browserWSEndpoint: string; defaultViewport: null }) => Promise<unknown>;
+    };
     try {
       mod = (await dynImport("puppeteer-core")) as typeof mod;
     } catch {
@@ -65,7 +67,9 @@ export async function connect(
         );
       }
     }
-    return mod.connect({ browserWSEndpoint: cdpUrl });
+    // defaultViewport: null — otherwise Puppeteer emulates 800x600 on every page,
+    // which contradicts the persona's real window (clientWidth > innerWidth).
+    return mod.connect({ browserWSEndpoint: cdpUrl, defaultViewport: null });
   }
 
   throw new SprntrlError(`Unsupported framework '${framework}'`);
