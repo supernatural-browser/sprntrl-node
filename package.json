@@ -1,6 +1,6 @@
 {
   "name": "sprntrl",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Supernatural Node SDK — stealth browser-as-a-service client.",
   "type": "module",
   "main": "./dist/index.js",

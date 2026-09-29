@@ -13,8 +13,19 @@ import type {
 import type { Sprntrl } from "../client.js";
 
 export interface SessionCreateParams {
+  /** Persona family: `"macos"`, `"windows"` or `"android"`. */
   os: OS;
-  location: string;
+  /**
+   * Exact pool zone — an IANA timezone from `listLocations()`. Mutually
+   * exclusive with `country`; pass one of the two.
+   */
+  location?: string;
+  /**
+   * Coarse exit selector: ISO 3166-1 alpha-2 code (e.g. `"GB"`). Picks any
+   * active pool exit in that country, at random. Mutually exclusive with
+   * `location`. Ignored for BYO-proxy sessions.
+   */
+  country?: string;
   /**
    * Pin the proxy-pool match to a specific labeled row at `location` — one
    * of the labels surfaced by `listLocations()` (e.g. "Kentucky, US").
@@ -65,6 +76,23 @@ export interface SessionCreateParams {
    * `{ uploadB64, filename? }`, `{ webstoreUrl }`, or `{ crxUrl }`.
    */
   extensions?: ExtensionInlineSpec[];
+  /**
+   * Opt out of the per-session position pin. Default `false`: the browser
+   * reports a position near the exit IP.
+   */
+  disable_geolocation?: boolean;
+  /**
+   * Route egress through the in-sidecar proxy relay (proxy liveness
+   * monitoring + live upstream swap). Feature flag; default off. Only takes
+   * effect when the session has a proxy.
+   */
+  proxy_relay?: boolean;
+  /**
+   * Replaces the server-generated fingerprint `overrides` block for this
+   * session. Requires the admin-granted `fingerprint_edit` capability;
+   * ephemeral sessions only; applied verbatim without validation.
+   */
+  fingerprint_overrides?: Record<string, unknown>;
 }
 
 export interface SessionResumeParams {
@@ -150,6 +178,7 @@ export class Sessions extends APIResource {
     const {
       os,
       location,
+      country,
       label,
       persistent = false,
       captcha_solver,
@@ -162,8 +191,13 @@ export class Sessions extends APIResource {
       session_name,
       proxy,
       extensions,
+      disable_geolocation,
+      proxy_relay,
+      fingerprint_overrides,
     } = params;
-    const body: Record<string, unknown> = { os, location, persistent };
+    const body: Record<string, unknown> = { os, persistent };
+    if (location !== undefined) body.location = location;
+    if (country !== undefined) body.country = country;
     if (label !== undefined) body.label = label;
     if (captcha_solver) body.captcha_solver = true;
     if (isolated_world !== undefined) body.isolated_world = isolated_world;
@@ -182,6 +216,9 @@ export class Sessions extends APIResource {
         crx_url: e.crxUrl,
       }));
     }
+    if (disable_geolocation) body.disable_geolocation = true;
+    if (proxy_relay !== undefined) body.proxy_relay = proxy_relay;
+    if (fingerprint_overrides !== undefined) body.fingerprint_overrides = fingerprint_overrides;
     return this._client.request<Session>({
       method: "POST",
       path: "/api/v1/sessions",

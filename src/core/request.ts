@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import {
   APIConnectionError,
   APIConnectionTimeoutError,
@@ -30,7 +31,10 @@ export interface RequestOptions {
   maxRetries?: number;
 }
 
-const USER_AGENT = "sprntrl-node/0.1.0";
+// package.json is the single source of the version; dist/core/request.js sits
+// two levels below the package root, and npm always packs package.json.
+const { version } = createRequire(import.meta.url)("../../package.json") as { version: string };
+export const USER_AGENT = `sprntrl-node/${version}`;
 
 function buildURL(baseURL: string, path: string, query?: RequestOptions["query"]): string {
   const url = path.startsWith("http") ? new URL(path) : new URL(path, baseURL);

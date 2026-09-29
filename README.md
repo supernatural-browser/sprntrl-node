@@ -93,7 +93,7 @@ const url = client.sessions.cdpUrl(session.id);
 
 ```ts
 const session = await client.sessions.create({
-  os: "macos",                  // "macos" | "windows"
+  os: "macos",                  // "macos" | "windows" | "android"
   location: "America/New_York", // IANA timezone (see Locations below)
   label: "Kentucky, US",        // pin the pool match to a specific labeled slice (ignored for BYO proxies)
   persistent: true,             // keep the profile for later resume (default false)
@@ -107,6 +107,17 @@ const session = await client.sessions.create({
   proxy: "http://user:pass@host:8080", // string URL or { protocol, host, port, username, password };
                                        // HTTP / HTTPS / SOCKS5
 });
+```
+
+More options:
+
+- `country` — ISO 3166-1 alpha-2 code (e.g. `"GB"`): any pool exit in that country, drawn at random. Use instead of `location` (the two are mutually exclusive). Ignored for BYO-proxy sessions.
+- `disable_geolocation` — default `false`. Opts out of the per-session position pin (by default the browser reports a position near the exit IP).
+- `proxy_relay` — default off. Routes egress through the in-sidecar proxy relay (proxy liveness monitoring + live upstream swap). Feature flag.
+- `fingerprint_overrides` — object that replaces the generated fingerprint `overrides` block. Ephemeral sessions only; needs the admin-granted `fingerprint_edit` capability; applied verbatim.
+
+```ts
+const session = await client.sessions.create({ os: "android", country: "GB", disable_geolocation: true });
 ```
 
 ### Locations

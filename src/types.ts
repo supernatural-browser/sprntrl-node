@@ -6,7 +6,7 @@ export type SessionStatus =
   | "stopped"
   | "failed"
   | "archiving";
-export type OS = "macos" | "windows";
+export type OS = "macos" | "windows" | "android";
 
 export interface ProxyConfig {
   protocol?: ProxyProtocol;
