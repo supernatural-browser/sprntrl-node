@@ -17,26 +17,16 @@ test("create() omits the new fields when unset", async () => {
   assert.deepEqual(body, { os: "macos", location: "America/New_York", persistent: false });
 });
 
-test("create() serializes country, disable_geolocation, proxy_relay, fingerprint_overrides", async () => {
-  const overrides = { userAgent: "x", screen: { width: 412 } };
+test("create() serializes country and disable_geolocation", async () => {
   const body = await createBody({
     os: "android",
     country: "GB",
     disable_geolocation: true,
-    proxy_relay: true,
-    fingerprint_overrides: overrides,
   });
   assert.deepEqual(body, {
     os: "android",
     persistent: false,
     country: "GB",
     disable_geolocation: true,
-    proxy_relay: true,
-    fingerprint_overrides: overrides,
   });
-});
-
-test("create() sends proxy_relay: false explicitly", async () => {
-  const body = await createBody({ os: "windows", location: "Europe/London", proxy_relay: false });
-  assert.equal(body.proxy_relay, false);
 });

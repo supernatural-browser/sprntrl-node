@@ -113,8 +113,6 @@ More options:
 
 - `country` — ISO 3166-1 alpha-2 code (e.g. `"GB"`): any pool exit in that country, drawn at random. Use instead of `location` (the two are mutually exclusive). Ignored for BYO-proxy sessions.
 - `disable_geolocation` — default `false`. Opts out of the per-session position pin (by default the browser reports a position near the exit IP).
-- `proxy_relay` — default off. Routes egress through the in-sidecar proxy relay (proxy liveness monitoring + live upstream swap). Feature flag.
-- `fingerprint_overrides` — object that replaces the generated fingerprint `overrides` block. Ephemeral sessions only; needs the admin-granted `fingerprint_edit` capability; applied verbatim.
 
 ```ts
 const session = await client.sessions.create({ os: "android", country: "GB", disable_geolocation: true });

@@ -81,18 +81,6 @@ export interface SessionCreateParams {
    * reports a position near the exit IP.
    */
   disable_geolocation?: boolean;
-  /**
-   * Route egress through the in-sidecar proxy relay (proxy liveness
-   * monitoring + live upstream swap). Feature flag; default off. Only takes
-   * effect when the session has a proxy.
-   */
-  proxy_relay?: boolean;
-  /**
-   * Replaces the server-generated fingerprint `overrides` block for this
-   * session. Requires the admin-granted `fingerprint_edit` capability;
-   * ephemeral sessions only; applied verbatim without validation.
-   */
-  fingerprint_overrides?: Record<string, unknown>;
 }
 
 export interface SessionResumeParams {
@@ -192,8 +180,6 @@ export class Sessions extends APIResource {
       proxy,
       extensions,
       disable_geolocation,
-      proxy_relay,
-      fingerprint_overrides,
     } = params;
     const body: Record<string, unknown> = { os, persistent };
     if (location !== undefined) body.location = location;
@@ -217,8 +203,6 @@ export class Sessions extends APIResource {
       }));
     }
     if (disable_geolocation) body.disable_geolocation = true;
-    if (proxy_relay !== undefined) body.proxy_relay = proxy_relay;
-    if (fingerprint_overrides !== undefined) body.fingerprint_overrides = fingerprint_overrides;
     return this._client.request<Session>({
       method: "POST",
       path: "/api/v1/sessions",
