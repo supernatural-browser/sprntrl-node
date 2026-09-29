@@ -76,11 +76,6 @@ export interface SessionCreateParams {
    * `{ uploadB64, filename? }`, `{ webstoreUrl }`, or `{ crxUrl }`.
    */
   extensions?: ExtensionInlineSpec[];
-  /**
-   * Opt out of the per-session position pin. Default `false`: the browser
-   * reports a position near the exit IP.
-   */
-  disable_geolocation?: boolean;
 }
 
 export interface SessionResumeParams {
@@ -179,7 +174,6 @@ export class Sessions extends APIResource {
       session_name,
       proxy,
       extensions,
-      disable_geolocation,
     } = params;
     const body: Record<string, unknown> = { os, persistent };
     if (location !== undefined) body.location = location;
@@ -202,7 +196,6 @@ export class Sessions extends APIResource {
         crx_url: e.crxUrl,
       }));
     }
-    if (disable_geolocation) body.disable_geolocation = true;
     return this._client.request<Session>({
       method: "POST",
       path: "/api/v1/sessions",

@@ -112,10 +112,9 @@ const session = await client.sessions.create({
 More options:
 
 - `country` — ISO 3166-1 alpha-2 code (e.g. `"GB"`): any pool exit in that country, drawn at random. Use instead of `location` (the two are mutually exclusive). Ignored for BYO-proxy sessions.
-- `disable_geolocation` — default `false`. Opts out of the per-session position pin (by default the browser reports a position near the exit IP).
 
 ```ts
-const session = await client.sessions.create({ os: "android", country: "GB", disable_geolocation: true });
+const session = await client.sessions.create({ os: "android", country: "GB" });
 ```
 
 ### Locations

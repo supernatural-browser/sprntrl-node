@@ -17,16 +17,14 @@ test("create() omits the new fields when unset", async () => {
   assert.deepEqual(body, { os: "macos", location: "America/New_York", persistent: false });
 });
 
-test("create() serializes country and disable_geolocation", async () => {
+test("create() serializes country", async () => {
   const body = await createBody({
     os: "android",
     country: "GB",
-    disable_geolocation: true,
   });
   assert.deepEqual(body, {
     os: "android",
     persistent: false,
     country: "GB",
-    disable_geolocation: true,
   });
 });
